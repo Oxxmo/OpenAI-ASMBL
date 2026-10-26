@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b0c">
+  <meta name="description" content="ASMBL — une étude de mouvement autour du geste, de la matière et du temps.">
+  <title>ASMBL — Le temps prend forme.</title>
+  <link rel="stylesheet" href="hero.css">
+  <script src="motion.js" defer></script>
+</head>
+<body>
+  <main class="hero" id="hero">
+    <div class="visual" aria-hidden="true">
+      <picture><source media="(max-width: 700px)" srcset="assets/poster-mobile.webp"><img class="poster" src="assets/poster.webp" alt="" fetchpriority="high"></picture>
+      <canvas id="motion-canvas" aria-hidden="true"></canvas>
+    </div>
+    <div class="hero-shade" aria-hidden="true"></div>
+
+    <header class="masthead">
+      <a class="wordmark" href="#hero" aria-label="ASMBL, accueil">ASMBL<span class="wordmark-dot" aria-hidden="true">·</span></a>
+      <span class="masthead-caption">LE SENS DU DÉTAIL</span>
+      <a class="header-link" href="#concept" data-open-dialog><span>L’univers ASMBL</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
+    </header>
+
+    <section class="hero-copy" aria-labelledby="hero-title">
+      <div class="eyebrow"><span aria-hidden="true"></span>L’ART DE PRENDRE LE TEMPS</div>
+      <h1 id="hero-title">Le temps<br>prend <em>forme.</em></h1>
+      <p class="hero-description">La matière s’éveille.<br>Le mouvement devient évidence.</p>
+      <a class="discover" href="#concept" data-open-dialog><span>Entrer dans l’univers</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></a>
+    </section>
+
+    <footer class="hero-footer">
+      <div class="edition"><span class="edition-line" aria-hidden="true"></span><span>ÉTUDE DE MOUVEMENT <b>01</b></span></div>
+      <div class="playback">
+        <div class="loop-info"><span class="loop-time">12 s <i aria-hidden="true">/</i> BOUCLE</span><span class="loop-track" aria-hidden="true"><span></span></span></div>
+        <button class="motion-toggle" id="motion-toggle" type="button" aria-label="Mettre l’animation en pause" aria-pressed="false">
+          <svg class="icon-pause" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7v10M15 7v10"/></svg>
+          <svg class="icon-play" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m10 7 7 5-7 5V7Z"/></svg>
+        </button>
+      </div>
+    </footer>
+    <div class="edge-label" aria-hidden="true">MATIÈRE &nbsp; / &nbsp; LUMIÈRE &nbsp; / &nbsp; MOUVEMENT</div>
+  </main>
+
+  <dialog class="concept-dialog" id="concept" aria-labelledby="concept-title">
+    <div class="dialog-inner">
+      <button class="dialog-close" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
+      <span class="eyebrow dialog-eyebrow">ASMBL — ÉTUDE 01</span>
+      <h2 id="concept-title">Le temps<br>prend <em>forme.</em></h2>
+      <p>Un jeu de lumière sur le métal. Des éléments qui se rencontrent. Une composition qui prend vie, puis retourne au silence.</p>
+      <p class="concept-note">Cette création est une proposition artistique. Elle pourra être adaptée aux visuels de vos montres et à l’identité définitive d’ASMBL.</p>
+      <div class="download-links">
+        <a href="assets/asmbl-hero.mp4" download><span>Le film — écran</span><span>MP4 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v13m-5-5 5 5 5-5M5 17v4h14v-4"/></svg></span></a>
+        <a href="assets/asmbl-hero-mobile.mp4" download><span>Le film — mobile</span><span>MP4 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v13m-5-5 5 5 5-5M5 17v4h14v-4"/></svg></span></a>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const dialog = document.getElementById('concept');
+      document.querySelectorAll('[data-open-dialog]').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+          event.preventDefault();
+          dialog.showModal();
+        });
+      });
+      dialog.querySelector('.dialog-close').addEventListener('click', function () { dialog.close(); });
+      dialog.addEventListener('click', function (event) {
+        const rect = dialog.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+      });
+
+      const motion = window.ASMBLMotion;
+      const toggle = document.getElementById('motion-toggle');
+      const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let paused = preference.matches;
+      function updatePlayback() {
+        document.body.classList.toggle('motion-paused', paused);
+        toggle.setAttribute('aria-pressed', String(paused));
+        toggle.setAttribute('aria-label', paused ? 'Relancer l’animation' : 'Mettre l’animation en pause');
+        if (motion && typeof motion.setPaused === 'function') motion.setPaused(paused);
+      }
+      toggle.addEventListener('click', function () { paused = !paused; updatePlayback(); });
+      preference.addEventListener('change', function (event) { paused = event.matches; updatePlayback(); });
+      updatePlayback();
+      if (motion) Promise.resolve(motion.ready).then(function (result) {
+        if (!result.ok) { toggle.hidden = true; return; }
+        document.body.classList.add('motion-ready');
+        updatePlayback();
+      }).catch(function () { toggle.hidden = true; });
+      else toggle.hidden = true;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASMBL — Exemple d’intégration vidéo</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#090b0c;color:#f0eee9;font-family:Arial,sans-serif}
+  .asmbl-hero{position:relative;isolation:isolate;min-height:680px;height:100svh;overflow:hidden}
+  .asmbl-media,.asmbl-media video,.asmbl-media picture,.asmbl-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .asmbl-media{z-index:-2;background:#090b0c}.asmbl-media img{opacity:1}
+  .asmbl-hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(9,11,12,.35),transparent 70%)}
+  .asmbl-copy{position:absolute;left:8%;top:50%;transform:translateY(-35%)}
+  .asmbl-logo{position:absolute;top:40px;left:5%;font-size:28px;letter-spacing:.18em}
+  h1{font:400 clamp(64px,7.9vw,152px)/.99 Georgia,serif;letter-spacing:-.06em;margin:0 0 32px}
+  .asmbl-copy a{color:inherit;font-size:12px;text-decoration:none;border-bottom:1px solid #c7b496;padding-bottom:12px;display:inline-block}
+  button{position:absolute;bottom:30px;right:5%;border:1px solid #777;border-radius:30px;background:#1117;color:inherit;padding:12px 20px;cursor:pointer}
+  :focus-visible{outline:2px solid #c7b496;outline-offset:6px}
+  @media(max-width:700px){.asmbl-hero{min-height:740px}.asmbl-copy{top:auto;bottom:140px;left:7%;transform:none}.asmbl-hero::after{background:linear-gradient(0deg,#090b0c 3%,#090b0ce8 30%,transparent 75%)}}
+</style>
+<!-- Place assets/ next to this page, or adapt paths to your site's asset directory.
+     The final CTA destination must be set to the real collection URL. -->
+<section class="asmbl-hero" aria-labelledby="hero-heading">
+  <div class="asmbl-media" aria-hidden="true">
+    <picture><source media="(max-width:700px)" srcset="assets/poster-mobile.webp"><img src="assets/poster.webp" alt="" fetchpriority="high"></picture>
+    <video id="hero-film" loop muted playsinline preload="none" aria-hidden="true"></video>
+  </div>
+  <span class="asmbl-logo">ASMBL</span>
+  <div class="asmbl-copy"><h1 id="hero-heading">Le temps<br>prend <i>forme.</i></h1></div>
+  <button id="film-toggle" type="button" hidden aria-pressed="false">Mettre en pause</button>
+</section>
+<script>
+(() => {
+  const video=document.querySelector('#hero-film');
+  const button=document.querySelector('#film-toggle');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const mobile=matchMedia('(max-width:700px)');
+  let manualPause=false, changing=false;
+  const constrained=()=>reduced.matches || Boolean(navigator.connection?.saveData);
+  function buttonState(){button.textContent=video.paused?'Lire l’animation':'Mettre en pause';button.setAttribute('aria-pressed',String(!video.paused));}
+  async function start(){
+    if(changing)return;
+    if(constrained()){video.pause();video.style.visibility='hidden';button.hidden=true;return;}
+    changing=true;video.style.visibility='visible';button.hidden=false;
+    const src=mobile.matches?'assets/asmbl-hero-mobile.mp4':'assets/asmbl-hero.mp4';
+    if(video.getAttribute('src')!==src){video.src=src;video.load();}
+    if(!manualPause && !document.hidden){try{await video.play();}catch{button.textContent='Lire l’animation';}}
+    buttonState();changing=false;
+  }
+  button.addEventListener('click',async()=>{manualPause=!video.paused;if(manualPause)video.pause();else{try{await video.play();}catch{}}buttonState();});
+  video.addEventListener('error',()=>{video.style.visibility='hidden';button.hidden=true;});
+  video.addEventListener('play',buttonState);video.addEventListener('pause',buttonState);
+  reduced.addEventListener('change',start);mobile.addEventListener('change',start);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else start();});
+  start();
+})();
+</script>
+</html>
